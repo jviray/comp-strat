@@ -1,17 +1,19 @@
 import React, { Component } from 'react';
+import { Redirect } from 'react-router-dom';
 import ClipLoader from 'react-spinners/ClipLoader';
 
 import web3 from '../ethereum/web3';
-import dappContract from '../ethereum/dapp';
-import Supply from '../ethereum/supply';
+import compStratContract, {
+  address as compStratAddr,
+} from '../ethereum/compStrat';
 import daiContract from '../ethereum/dai';
 import cDaiContract from '../ethereum/cDai';
 import styles from './Home.module.scss';
 
 class Home extends Component {
   state = {
+    authorized: false,
     accountAddr: '',
-    supplyContractAddr: '',
     cDaiBalance: '',
     daiInput: '',
     isLoading: false,
@@ -20,20 +22,43 @@ class Home extends Component {
   async componentDidMount() {
     const accounts = await web3.eth.getAccounts();
 
-    const supplyContractAddr = await dappContract.methods
-      .getDeployedSupply(accounts[0])
+    this.setState({ accountAddr: accounts[0] });
+
+    const allowance = await daiContract.methods
+      .allowance(accounts[0], compStratAddr)
       .call();
 
-    const cDaiBalance = await cDaiContract.methods
-      .balanceOf(supplyContractAddr)
+    if (allowance >= 100000000000000000) {
+      this.setState({ authorized: true });
+    }
+
+    // const cDaiBalance = await cDaiContract.methods
+    //   .balanceOf(compStratAddr)
+    //   .call();
+
+    const cDaiBalance = await compStratContract.methods
+      .cDaiBalances(accounts[0])
       .call();
 
     this.setState({
-      accountAddr: accounts[0],
-      supplyContractAddr,
       cDaiBalance,
     });
   }
+
+  approveContract = async (evt) => {
+    evt.preventDefault();
+    try {
+      await daiContract.methods
+        .approve(compStratAddr, web3.utils.toWei('1000000000000'))
+        .send({
+          from: this.state.accountAddr,
+        });
+
+      this.setState({ authorized: true });
+    } catch (err) {}
+
+    window.location.reload();
+  };
 
   handleSubmut = async (evt) => {
     evt.preventDefault();
@@ -41,25 +66,12 @@ class Home extends Component {
     this.setState({ isLoading: true });
 
     try {
-      await daiContract.methods
-        .transfer(
-          this.state.supplyContractAddr,
-          web3.utils.toWei(this.state.daiInput)
-        )
+      await compStratContract.methods
+        .supplyDai(web3.utils.toWei(this.state.daiInput))
         .send({
           from: this.state.accountAddr,
-          gasLimit: web3.utils.toHex(150000),
-          gasPrice: web3.utils.toHex(20000000000),
-        });
-
-      const supplyContract = Supply(this.state.supplyContractAddr);
-
-      await supplyContract.methods
-        .supplyDaiToCompound(web3.utils.toWei(this.state.daiInput))
-        .send({
-          from: this.state.accountAddr,
-          gasLimit: web3.utils.toHex(5000000),
-          gasPrice: web3.utils.toHex(20000000000),
+          // gasLimit: web3.utils.toHex(5000000),
+          // gasPrice: web3.utils.toHex(20000000000),
         });
     } catch (err) {}
 
@@ -68,7 +80,11 @@ class Home extends Component {
   };
 
   render() {
-    const { formContainer, form, formGroup, btn } = styles;
+    const { formContainer, form, formGroup, btn, status, authLink } = styles;
+
+    if (!this.state.accountAddr && this.state.accountAddr == null) {
+      return <Redirect to="/" />;
+    }
 
     return (
       <main className="wrap">
@@ -78,15 +94,31 @@ class Home extends Component {
           <form className={form} onSubmit={this.handleSubmut}>
             <div className={formGroup}>
               <label>
-                <p>Your cDAI Token Balance: {this.state.cDaiBalance / 1e8}</p>
+                <div>
+                  Your cDAI Token Balance: {this.state.cDaiBalance / 1e8}
+                </div>
+                {this.state.authorized ? (
+                  <div className={status}>Authorized</div>
+                ) : (
+                  <button
+                    className={authLink}
+                    onClick={(evt) => this.approveContract(evt)}
+                  >
+                    Authorize Contract
+                  </button>
+                )}
               </label>
               <input
-                disabled={!this.state.isLoading ? false : true}
+                disabled={this.state.isLoading || !this.state.authorized}
                 value={this.state.daiInput}
                 onChange={(evt) =>
                   this.setState({ daiInput: evt.target.value })
                 }
-                placeholder="Enter an amount of DAI"
+                placeholder={
+                  this.state.authorized
+                    ? 'Enter an amount of DAI'
+                    : 'Contract is not authorized to accept DAI'
+                }
               />
             </div>
             <button className={btn} type="submit">

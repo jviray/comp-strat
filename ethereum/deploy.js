@@ -1,6 +1,6 @@
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const Web3 = require('web3');
-const compiledDapp = require('./build/Dapp.json');
+const compiledCompStrat = require('./build/CompStrat.json');
 
 const provider = new HDWalletProvider(
   'wrap weekend will noise hobby eagle success pipe denial eager enough journey',
@@ -14,9 +14,16 @@ const deploy = async () => {
 
   console.log('Attempting to deploy from account', accounts[0]);
 
+  // Kovan Dai Contract:
+  const DAI = '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa';
+  // Kovan cDai Contract:
+  const cDAI = '0xf0d0eb522cfa50b716b3b1604c4f0fa6f04376ad';
+
   // Returns an instance of the contract we deployed
-  const result = await new web3.eth.Contract(JSON.parse(compiledDapp.interface))
-    .deploy({ data: compiledDapp.bytecode })
+  const result = await new web3.eth.Contract(
+    JSON.parse(compiledCompStrat.interface)
+  )
+    .deploy({ data: compiledCompStrat.bytecode, arguments: [DAI, cDAI] })
 
     // Important to set gasLimit (21000 is generally the minimum);
     // this was not mentioned in Grider's tutorial
@@ -29,4 +36,4 @@ const deploy = async () => {
 
 deploy();
 
-// Contract deployed to 0xa82E41eE076E2cb5bAE941dbB72725DF7072AB83
+// Contract deployed to 0x23a2BCf91Af5947b248E1F5FA4A92e1DEC8B45dE

@@ -19,8 +19,9 @@ if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
   const provider = new Web3.providers.HttpProvider(
     'https://kovan.infura.io/v3/213d3dde92d54590aedc49f08282827e'
   );
-
   web3 = new Web3(provider);
+
+  console.log('Must have Metamask installed to connect.');
 }
 
 export default web3;

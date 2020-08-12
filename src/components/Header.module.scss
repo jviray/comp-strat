@@ -4,6 +4,10 @@
   margin-bottom: 4rem;
   padding: 1.25rem 0rem;
   font-size: 1rem;
+
+  .info {
+    text-align: right;
+  }
 }
 
 .appName {
@@ -13,11 +17,7 @@
 }
 
 .btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 121.25px;
-  height: 38.6;
+  display: inline-block;
   background-color: #00d395;
   border: 1.5px solid #00d395;
   border-radius: 3px;

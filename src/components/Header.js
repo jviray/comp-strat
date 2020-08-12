@@ -1,34 +1,47 @@
 import React, { Component } from 'react';
-import ClipLoader from 'react-spinners/ClipLoader';
 
 import styles from './Header.module.scss';
 
 class Header extends Component {
+  renderButton() {
+    if (!this.props.account) {
+      return (
+        <a className={styles.btn} href="https://metamask.io/" target="_blank">
+          Install Metamask
+        </a>
+      );
+    } else {
+      return (
+        <a className={styles.btn} href="/dashboard">
+          Connect
+        </a>
+      );
+    }
+  }
+
+  renderHeader() {
+    if (window.location.pathname === '/dashboard') {
+      return (
+        <div className={styles.info}>
+          <p>{this.props.account}</p>
+        </div>
+      );
+    } else {
+      return this.renderButton();
+    }
+  }
+
   render() {
-    const { navbar, appName, btn } = styles;
+    const { navbar, appName } = styles;
     return (
       <nav className={navbar}>
         <div className="wrap flex space-between align-center">
           <div className={appName}>
-            <h1>Compound Dapp</h1>
+            <a href="/">
+              <h1>$COMP Strategy</h1>
+            </a>
           </div>
-          <div>
-            {this.props.isRegistered ? (
-              <p>Metamask Balance: {this.props.userDaiBalance} DAI</p>
-            ) : (
-              <button className={btn} onClick={() => this.props.onStart()}>
-                {!this.props.isLoading ? (
-                  'Get Started'
-                ) : (
-                  <ClipLoader
-                    size={18}
-                    color={'#fff'}
-                    loading={this.props.isLoading}
-                  />
-                )}
-              </button>
-            )}
-          </div>
+          <div>{this.renderHeader()}</div>
         </div>
       </nav>
     );

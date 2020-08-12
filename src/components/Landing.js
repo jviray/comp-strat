@@ -7,8 +7,8 @@ const Landing = () => {
   return (
     <main className="wrap">
       <div className={container}>
-        <h2>Welcome to Compound Dapp</h2>
-        <div className={box}>Connect with Metamask and get started!</div>
+        <h3>Welcome, start farming $COMP now!</h3>
+        <div className={box}>Must have Metamask installed to connect.</div>
       </div>
     </main>
   );
