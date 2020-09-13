@@ -70,8 +70,6 @@ class Home extends Component {
         .supplyDai(web3.utils.toWei(this.state.daiInput))
         .send({
           from: this.state.accountAddr,
-          // gasLimit: web3.utils.toHex(5000000),
-          // gasPrice: web3.utils.toHex(20000000000),
         });
     } catch (err) {}
 
